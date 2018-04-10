@@ -23,27 +23,21 @@ class mainWindow(Frame):
     def __init__(self, q, master=None):
         super(mainWindow, self).__init__(master)
         self.pack()
-        self.cv = Canvas(self, width=200, height=200)
+        self.cv = Canvas(self, width=250, height=250)
         self.cv.pack()
         self.drehScheibe()
         self.q = q
         self.message = "keine Daten"
-        self.labelData = Label(self, text="Drehbühne Position: " + self.message)
+        self.labelData = Label(self, text="Drehbühne Position:")
         self.labelData.pack()
-        self.rahmen = Frame(master=self.master, relief="ridge", bd=2)
-        self.rahmen.pack(pady=10, ipadx=10)
-        self.ipData = Label(master=self.rahmen, text="Sensor IP: " + self.message)
-        self.ipData.pack()
-        self.portData = Label(master=self.rahmen, text="Sensor Port: " + self.message)
-        self.portData.pack()
+        self.labelSensor = Label(self, font=("", 24), text=self.message)
+        self.labelSensor.pack()
         self.updateLabelData()
 
     def updateLabelData(self):
         try:
             self.message = self.q.get_nowait()
-            self.labelData["text"] = "Drehbühne Position: " + str(self.message[2])
-            self.ipData["text"] = "Sensor IP: " + str(self.message[0])
-            self.portData["text"] = "Sensor Port: " + str(self.message[1])
+            self.labelSensor["text"] = str(int(str(self.message[2]))) # workarround um führende Nullen zu eliminieren
             self.positionsStrich()
         except(Empty):
             pass ## muss noch bearbeitet werden
@@ -52,8 +46,8 @@ class mainWindow(Frame):
     def drehScheibe(self):
         self.x0 = 25
         self.y0 = 25
-        self.x1 = 175
-        self.y1 = 175
+        self.x1 = 225
+        self.y1 = 225
 
         self.strichLaenge = (self.x1 - self.x0)/2
         self.center_x = ((self.x1 - self.x0)/2) + self.x0
