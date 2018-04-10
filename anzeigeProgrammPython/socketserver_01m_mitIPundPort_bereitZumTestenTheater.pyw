@@ -29,7 +29,7 @@ class mainWindow(Frame):
         self.cv.pack()
         self.drehScheibe()
         self.q = q
-        self.server = server
+        self.server = server # notwendig, um 'server' aus dem GUI beenden zu können
         self.message = "keine Daten"
         self.labelData = Label(self, text="Drehbühne Position:")
         self.labelData.pack()
@@ -43,7 +43,7 @@ class mainWindow(Frame):
             self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren
             if self.meterData != 0:
                 self.meterData = self.meterData / 100
-            self.labelSensor["text"] = str(self.meterData) + " m" 
+            self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
             self.positionsStrich()
         except(Empty):
             pass ## muss noch bearbeitet werden
