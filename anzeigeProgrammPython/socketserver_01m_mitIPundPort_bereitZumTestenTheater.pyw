@@ -20,13 +20,16 @@ class MyUdpHandler(BaseRequestHandler):
         self.server.q.put(self.dataTuple)
 
 class mainWindow(Frame):
-    def __init__(self, q, master=None):
+    def __init__(self, q, server, master=None):
         super(mainWindow, self).__init__(master)
+        self.master.protocol('WM_DELETE_WINDOW', self.beenden) # beendet, bei Klick auf das Menüzeilenkreuz das Programm sauber
+        self.master.title("DNT Scheibenstand")
         self.pack()
         self.cv = Canvas(self, width=250, height=250)
         self.cv.pack()
         self.drehScheibe()
         self.q = q
+        self.server = server
         self.message = "keine Daten"
         self.labelData = Label(self, text="Drehbühne Position:")
         self.labelData.pack()
@@ -37,7 +40,10 @@ class mainWindow(Frame):
     def updateLabelData(self):
         try:
             self.message = self.q.get_nowait()
-            self.labelSensor["text"] = str(int(str(self.message[2]))) # workarround um führende Nullen zu eliminieren
+            self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren
+            if self.meterData != 0:
+                self.meterData = self.meterData / 100
+            self.labelSensor["text"] = str(self.meterData) + " m" 
             self.positionsStrich()
         except(Empty):
             pass ## muss noch bearbeitet werden
@@ -63,9 +69,13 @@ class mainWindow(Frame):
 
         self.cv.coords(self.strich, self.center_x, self.center_y, x, y)
 
-#   mapping entspricht der Funktion map() aus Arduino
+    #   mapping entspricht der Funktion map() aus Arduino
     def mapping(self, value, in_min, in_max, out_min, out_max):
         return ((value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+
+    def beenden(self):
+        self.server.shutdown()
+        self.master.destroy()
 
 if __name__ == "__main__":
 
@@ -80,7 +90,7 @@ if __name__ == "__main__":
     
 # Starte Fenster ----------------------------------------------------
     root = Tk()
-    fenster = mainWindow(q, master=root)
+    fenster = mainWindow(q, server, master=root)
     fenster.mainloop()
 # Ende Start Fenster
 
