@@ -23,7 +23,7 @@ EthernetUDP Udp;          // Eine EthernetUDP Instanz zum Senden und Empfangen v
 
 void setup() {
 
-  // ToDo - hier muss vermutlich die lange Pause rein, 30 sec?
+  delay(30000); // Pause ist eine Wartezeit, dass die übergeordnete Netzwerkanlage erst mal in Gang kommt, dann erst richtet sich das Ethernetshield ein
   Ethernet.begin(mac, ip); // startet Ethernet mit angegebener MAC und IP
   Udp.begin(localPort); // startet UDP auf angegebenen Port
 
