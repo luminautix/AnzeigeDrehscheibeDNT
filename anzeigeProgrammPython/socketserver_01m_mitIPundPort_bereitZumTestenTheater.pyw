@@ -40,13 +40,17 @@ class mainWindow(Frame):
     def updateLabelData(self):
         try:
             self.message = self.q.get_nowait()
-            self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren
-            if self.meterData != 0:
-                self.meterData = self.meterData / 100
-            self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
-            self.positionsStrich()
+           try:    
+                self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren
+                if self.meterData != 0:
+                    self.meterData = self.meterData / 100
+                self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
+                self.positionsStrich()
+            except(ValueError):             # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
+                self.labelSensor["text"] = "Daten fehlerhaft"
         except(Empty):
             pass ## muss noch bearbeitet werden
+ 
         self.after(1, self.updateLabelData)
 
     def drehScheibe(self):

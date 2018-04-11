@@ -14,11 +14,16 @@ const int barcodeLength = 6;
 const int triggerChannel = 4;
 
 int counter = 0;
-byte inputByteString[barcodeLength];
+byte inputByteString[barcodeLength];  // Länge des Barcodespeicherplatz = Anzahl der Barcodezeichen
+
+long previousMillis;     // in millis()
+long intervalMillis = 30000;    // in millis()
 
 EthernetUDP Udp;          // Eine EthernetUDP Instanz zum Senden und Empfangen von Paketen über UDP
 
 void setup() {
+
+  // ToDo - hier muss vermutlich die lange Pause rein, 30 sec?
   Ethernet.begin(mac, ip); // startet Ethernet mit angegebener MAC und IP
   Udp.begin(localPort); // startet UDP auf angegebenen Port
 
@@ -28,6 +33,8 @@ void setup() {
   
   pinMode(triggerChannel, OUTPUT);
   digitalWrite(triggerChannel, LOW);
+
+  previousMillis = millis();
 }
 // ------------------------------------------------------------------------------------------------------
 
@@ -59,10 +66,19 @@ void serialEvent(){
       // ASCII 13 entspricht dem '\n'
       // die Endsequenz ist 13 10, also '\n' '\t', also Line Feed und Carriage Return
       // die Sequenz beginnt mit ASCII 2, also 'Start of Text'
+
+      // TODO - zyklisches Senden wenn sich Daten nicht ändern, nach gewisser Zeitspanne (vielleicht 30s ?) 
+      if ((newDataReceived != true) && ((millis() - previousMillis) > intervalMillis)){
+        previousMillis = millis();
+        stringComplete = true;
+        }
+        
+      // SENDEN freigeben - Daten haben sich geändert      
       if (newDataReceived == true){
         stringComplete = true;
         newDataReceived = false;
         }
+
       counter = 0;      
       }
     else {
