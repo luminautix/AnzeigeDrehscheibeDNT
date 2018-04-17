@@ -45,8 +45,8 @@ class mainWindow(Frame):
             self.message = self.q.get_nowait() # möglicher Fehler 'Empty'
             try:
                 self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren # möglicher Fehler 'ValueError'
-                self.timeSinceLastData = time()
-                self.meterData = self.offsetData(self.meterData, 1)
+                self.timeSinceLastData = time()         # nimmt die Zeit, wann die letzten Daten empfangen wurden
+                self.meterData = self.offsetData(self.meterData, 1) # offsetData beruhigt die Anzeige um den zweiten Wert im Funktionsaufruf
                 if self.meterData != 0:
                     self.meterData = self.meterData / 100
                 self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
