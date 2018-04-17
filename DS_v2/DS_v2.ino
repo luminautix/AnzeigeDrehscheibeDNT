@@ -22,19 +22,15 @@ long intervalMillis = 30000;    // in millis()
 EthernetUDP Udp;          // Eine EthernetUDP Instanz zum Senden und Empfangen von Paketen über UDP
 
 void setup() {
-
-  delay(30000); // Pause ist eine Wartezeit, dass die übergeordnete Netzwerkanlage erst mal in Gang kommt, dann erst richtet sich das Ethernetshield ein
+  delay(5000);
   Ethernet.begin(mac, ip); // startet Ethernet mit angegebener MAC und IP
   Udp.begin(localPort); // startet UDP auf angegebenen Port
-
-  
   // initialize serial:
   Serial.begin(9600);
-  
   pinMode(triggerChannel, OUTPUT);
   digitalWrite(triggerChannel, LOW);
 
-  previousMillis = millis();
+  previousMillis = millis();  
 }
 // ------------------------------------------------------------------------------------------------------
 
@@ -53,7 +49,7 @@ void loop() {
   } // END if(stringComplete)
 
   digitalWrite(triggerChannel, LOW); // setze Barcodetrigger auf 0V -> Lesebetrieb
-  delay(10); // ACHTUNG: ohne dieses Delay funktioniert die 'serialEvent' Funktion nicht
+  delay(250); // ACHTUNG: ohne dieses Delay funktioniert die 'serialEvent' Funktion nicht
 }
 
 /* Funktionen Bereich --------------------------------------------------------------------------------------------- */

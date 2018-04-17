@@ -4,6 +4,7 @@ from threading import Thread
 from queue import Queue, Empty
 from tkinter import Tk, Frame, Label, Canvas
 from math import sin, cos, radians
+from time import time
 
 class myUDPServer(UDPServer):
 
@@ -29,8 +30,10 @@ class mainWindow(Frame):
         self.cv.pack()
         self.drehScheibe()
         self.q = q
-        self.server = server # notwendig, um 'server' aus dem GUI beenden zu können
+        self.server = server # notwendig, um 'server' aus der GUI beenden zu können
         self.message = "keine Daten"
+        self.timeSinceLastData = time()
+        self.dataOld = 1
         self.labelData = Label(self, text="Drehbühne Position:")
         self.labelData.pack()
         self.labelSensor = Label(self, font=("", 24), text=self.message)
@@ -39,18 +42,20 @@ class mainWindow(Frame):
 
     def updateLabelData(self):
         try:
-            self.message = self.q.get_nowait()
-           try:    
-                self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren
+            self.message = self.q.get_nowait() # möglicher Fehler 'Empty'
+            try:
+                self.meterData = int(self.message[2]) # workarround um führende Nullen zu eliminieren # möglicher Fehler 'ValueError'
+                self.timeSinceLastData = time()
+                self.meterData = self.offsetData(self.meterData, 1)
                 if self.meterData != 0:
                     self.meterData = self.meterData / 100
                 self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
                 self.positionsStrich()
-            except(ValueError):             # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
+            except(ValueError):         # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
                 self.labelSensor["text"] = "Daten fehlerhaft"
         except(Empty):
-            pass ## muss noch bearbeitet werden
- 
+            if time() - self.timeSinceLastData > 120: # wenn mehr als 120 sec ohne Datenempfang vergangen sind -> Fehlermeldung
+                self.labelSensor["text"] = "Daten fehlen"
         self.after(1, self.updateLabelData)
 
     def drehScheibe(self):
@@ -76,6 +81,17 @@ class mainWindow(Frame):
     #   mapping entspricht der Funktion map() aus Arduino
     def mapping(self, value, in_min, in_max, out_min, out_max):
         return ((value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+    
+    def offsetData(self, data, offset):
+        # offsetData ist keine gute Bezeichnung, offset ist besser für die Scheibenwerte (44,06?m)
+        if data != self.dataOld:
+            if ((data < self.dataOld - offset) | (data > self.dataOld + offset)):
+                self.dataOld = data
+                return data
+            else:
+                return self.dataOld
+        else:
+            return data
 
     def beenden(self):
         self.server.shutdown()
