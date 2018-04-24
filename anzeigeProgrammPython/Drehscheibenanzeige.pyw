@@ -46,16 +46,15 @@ class mainWindow(Frame):
             try:
                 self.meterData = (int(self.message[2])) # workarround um führende Nullen zu eliminieren # möglicher Fehler 'ValueError'
                 self.meterData = self.offsetData(self.meterData, 1) # offsetData beruhigt die Anzeige um den zweiten Wert im Funktionsaufruf
-                self.meterData = self.meterData + 1072 # Barcode Offset
-                if self.meterData > 4424:
+                self.meterData = self.meterData - 1413 # Barcode Offset, weil Barcode-Leser physisch an anderen Standort als Maschinenstand-Barcode-Leser
+                if self.meterData > 4424:   # größtmöglicher Wert ist #4424', dann folgt im Barcodeband die '0004'
                     self.meterData = self.meterData - 4424
-                self.meterData = int(self.meterData * 5010 / 4424)
-                
-                self.timeSinceLastData = time()         # nimmt die Zeit, wann die letzten Daten empfangen wurden
+                self.positionsStrich(self.meterData)
                 if self.meterData != 0:
-                    self.meterData = self.meterData / 100
+                    self.meterData = int(self.meterData * 5010 / 4424)  # Barcodeband ist kürzer als der Drehscheibenumfang, Durchmesser der Drehscheibe ist größer
+                    self.meterData = self.meterData / 100   # hier wird der Wert zur Kommazahl/float/Meter.Zentimeter gemacht
                 self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
-                self.positionsStrich()
+                self.timeSinceLastData = time()         # nimmt die Zeit, wann die letzten Daten korrekt empfangen wurden,
             except(ValueError):         # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
                 self.labelSensor["text"] = "Daten fehlerhaft"
         except(Empty):
@@ -76,10 +75,10 @@ class mainWindow(Frame):
         self.cv.create_oval(self.x0, self.y0, self.x1, self.y1)
         self.strich = self.cv.create_line(self.center_x, self.center_y, self.center_x, self.center_y) # beim start nur als Punkt
 
-    def positionsStrich(self):
-        mappedValue = self.mapping(int(self.message[2]), 0, 4450, 0, 360)
+    def positionsStrich(self, wert):
+        mappedValue = self.mapping(wert, 0, 4424, 0, 360)
         x = self.strichLaenge * sin(radians(mappedValue)) + self.center_x
-        y = self.strichLaenge * cos(radians(180 + mappedValue)) + self.center_y
+        y = self.strichLaenge * cos(radians(mappedValue)) + self.center_y
 
         self.cv.coords(self.strich, self.center_x, self.center_y, x, y)
 
