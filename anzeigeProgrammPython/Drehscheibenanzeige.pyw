@@ -57,6 +57,7 @@ class mainWindow(Frame):
                 self.positionsStrich(self.meterData)
                 self.timeSinceLastData = time()                     # nimmt die Zeit, wann die letzten Daten empfangen wurden
                 if self.meterData != 0:
+                    self.meterData = self.mapping(self.meterData, 0, 5020, 5020, 0)
                     self.meterData = self.meterData / 100           # Wert wird hier zur Kommazahl (float)
                 # zu erwartende Daten nach Kommazahl '0.00' bis '50.20'
                 self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
