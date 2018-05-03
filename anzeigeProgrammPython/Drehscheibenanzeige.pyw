@@ -30,7 +30,7 @@ class mainWindow(Frame):
         self.drehScheibe()
         self.q = q
         self.server = server                                        # notwendig, um 'server' aus der GUI beenden zu können
-        self.message = "keine Daten"
+        self.message = "Warte auf Daten"
         self.timeSinceLastData = time()
         self.dataOld = 1
         self.labelData = Label(self, text="Drehbühne Position:")
@@ -43,16 +43,22 @@ class mainWindow(Frame):
         try:
             self.message = self.q.get_nowait()                      # möglicher Fehler 'Empty'
             try:
+                # zu erwartende Daten vom Barcode: '000004' bis '004424'
                 self.meterData = (int(self.message[2]))             # workarround um führende Nullen zu eliminieren # möglicher Fehler 'ValueError'
-                self.meterData = self.offsetData(self.meterData, 1) # offsetData beruhigt die Anzeige um den zweiten Wert im Funktionsaufruf
+                # zu erwartende Daten '4' bis '4424'
+                self.meterData = self.offsetData(self.meterData, 1) # offsetData beruhigt die Anzeige auf den zweiten Wert im Funktionsaufruf
                 self.meterData = self.meterData - 1416              # Barcode Offset, weil Barcodeleser physisch an anderem Standort als Maschinenstand-Barcode-Leser
-                if self.meterData > 4424:                           # größtmöglicher Wert ist '4424', dann folgt auf dem Barcodeband die '0004'
-                    self.meterData = self.meterData - 4424
-                self.meterData = int(self.meterData * 5010 / 4424)  # Barcodeband ist kürzer als der Drehscheibenumfang, Durchmesser der Drehscheibe ist größer
+                # zu erwartende Daten nach der Berechnung: '-1412' bis '3008'
+                if self.meterData < 0:                              # Korrektur der negativen Werte hervorgerufen durch Offset
+                    self.meterData = self.meterData + 4424 + 4
+                # zu erwartende Daten nach der Korrektur: '3012' über '4424' und '0' bis '3008'
+                self.meterData = int(self.meterData * 5020 / 4424)  # Barcodeband ist kürzer als der Drehscheibenumfang, Durchmesser der Drehscheibe ist größer
+                # zu erwartende Daten nach Umfangkorrektur '0' bis '5020'
                 self.positionsStrich(self.meterData)
                 self.timeSinceLastData = time()                     # nimmt die Zeit, wann die letzten Daten empfangen wurden
                 if self.meterData != 0:
-                    self.meterData = self.meterData / 100           # Wert wird hier zur Kommazahl (float), z.B. 1423cm zu 14,23m
+                    self.meterData = self.meterData / 100           # Wert wird hier zur Kommazahl (float)
+                # zu erwartende Daten nach Kommazahl '0.00' bis '50.20'
                 self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
             except(ValueError):                                     # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
                 self.labelSensor["text"] = "Daten fehlerhaft"
@@ -72,10 +78,10 @@ class mainWindow(Frame):
         self.center_y = ((self.y1 - self.y0)/2) + self.y0
 
         self.cv.create_oval(self.x0, self.y0, self.x1, self.y1)
-        self.strich = self.cv.create_line(self.center_x, self.center_y, self.center_x, self.center_y) # beim start nur als Punkt
+        self.strich = self.cv.create_line(self.center_x, self.center_y, self.center_x, self.center_y) # beim Start nur als Punkt
 
     def positionsStrich(self, wert):
-        mappedValue = self.mapping(wert, 0, 5010, 0, 360)
+        mappedValue = self.mapping(wert, 0, 5020, 0, 360)
         x = self.strichLaenge * sin(radians(mappedValue)) + self.center_x
         y = self.strichLaenge * cos(radians(mappedValue)) + self.center_y
 
