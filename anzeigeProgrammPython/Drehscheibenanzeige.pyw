@@ -1,4 +1,3 @@
-#socketserverUDP von docs.python.org
 from socketserver import BaseRequestHandler, UDPServer
 from threading import Thread
 from queue import Queue, Empty
@@ -23,14 +22,14 @@ class MyUdpHandler(BaseRequestHandler):
 class mainWindow(Frame):
     def __init__(self, q, server, master=None):
         super(mainWindow, self).__init__(master)
-        self.master.protocol('WM_DELETE_WINDOW', self.beenden) # beendet, bei Klick auf das Menüzeilenkreuz das Programm sauber
+        self.master.protocol('WM_DELETE_WINDOW', self.beenden)      # beendet, bei Klick auf das Menüzeilenkreuz das Programm sauber
         self.master.title("DNT Scheibenstand")
         self.pack()
         self.cv = Canvas(self, width=250, height=250)
         self.cv.pack()
         self.drehScheibe()
         self.q = q
-        self.server = server # notwendig, um 'server' aus der GUI beenden zu können
+        self.server = server                                        # notwendig, um 'server' aus der GUI beenden zu können
         self.message = "keine Daten"
         self.timeSinceLastData = time()
         self.dataOld = 1
@@ -42,23 +41,23 @@ class mainWindow(Frame):
 
     def updateLabelData(self):
         try:
-            self.message = self.q.get_nowait() # möglicher Fehler 'Empty'
+            self.message = self.q.get_nowait()                      # möglicher Fehler 'Empty'
             try:
-                self.meterData = (int(self.message[2])) # workarround um führende Nullen zu eliminieren # möglicher Fehler 'ValueError'
+                self.meterData = (int(self.message[2]))             # workarround um führende Nullen zu eliminieren # möglicher Fehler 'ValueError'
                 self.meterData = self.offsetData(self.meterData, 1) # offsetData beruhigt die Anzeige um den zweiten Wert im Funktionsaufruf
-                self.meterData = self.meterData - 1416 # Barcode Offset, weil Barcodeleser physisch an anderem Standort als Maschinenstand-Barcode-Leser
-                if self.meterData > 4424:   # größtmöglicher Wert ist '4424', dann folgt auf dem Barcodeband die '0004'
+                self.meterData = self.meterData - 1416              # Barcode Offset, weil Barcodeleser physisch an anderem Standort als Maschinenstand-Barcode-Leser
+                if self.meterData > 4424:                           # größtmöglicher Wert ist '4424', dann folgt auf dem Barcodeband die '0004'
                     self.meterData = self.meterData - 4424
-                self.meterData = int(self.meterData * 5010 / 4424) # Barcodeband ist kürzer als der Drehscheibenumfang, Durchmesser der Drehscheibe ist größer
+                self.meterData = int(self.meterData * 5010 / 4424)  # Barcodeband ist kürzer als der Drehscheibenumfang, Durchmesser der Drehscheibe ist größer
                 self.positionsStrich(self.meterData)
-                self.timeSinceLastData = time()         # nimmt die Zeit, wann die letzten Daten empfangen wurden
+                self.timeSinceLastData = time()                     # nimmt die Zeit, wann die letzten Daten empfangen wurden
                 if self.meterData != 0:
-                    self.meterData = self.meterData / 100   # Wert wird hier zur Kommazahl (float), z.B. 1423cm zu 14,23m
+                    self.meterData = self.meterData / 100           # Wert wird hier zur Kommazahl (float), z.B. 1423cm zu 14,23m
                 self.labelSensor["text"] = (str(self.meterData)).replace(".", ",") + " m" 
-            except(ValueError):         # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
+            except(ValueError):                                     # tritt auf, wenn empfangene HEX nicht nach int() übersetzt werden können
                 self.labelSensor["text"] = "Daten fehlerhaft"
         except(Empty):
-            if time() - self.timeSinceLastData > 120: # wenn mehr als 120 sec ohne Datenempfang vergangen sind -> Fehlermeldung
+            if time() - self.timeSinceLastData > 120:               # wenn mehr als 120 sec ohne Datenempfang vergangen sind -> Fehlermeldung
                 self.labelSensor["text"] = "Daten fehlen"
         self.after(1, self.updateLabelData)
 
